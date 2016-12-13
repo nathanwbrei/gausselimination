@@ -1,0 +1,78 @@
+Solving the Ax=b system with Gaussian Elimination:
+READ:  Matrix   (A) file name: "ge_data/size64x64.mat"
+READ:  RHS      (b) file name: "ge_data/size64x64.vec"
+WRITE: Solution (x) file name: "ge_data/size64x64.sol"
+[R04] Times: IO: 0.000000; Setup: 0.004648; Compute: 0.000372; MPI: 0.000323; Total: 0.005031;
+[R05] Times: IO: 0.000000; Setup: 0.004669; Compute: 0.000349; MPI: 0.000299; Total: 0.005021;
+[R06] Times: IO: 0.000000; Setup: 0.004688; Compute: 0.000312; MPI: 0.000259; Total: 0.005003;
+[R07] Times: IO: 0.000000; Setup: 0.004687; Compute: 0.000290; MPI: 0.000232; Total: 0.004979;
+[R01] Times: IO: 0.000000; Setup: 0.005154; Compute: 0.000448; MPI: 0.000412; Total: 0.005606;
+[R02] Times: IO: 0.000000; Setup: 0.005151; Compute: 0.000433; MPI: 0.000392; Total: 0.005588;
+[R03] Times: IO: 0.000000; Setup: 0.005152; Compute: 0.000404; MPI: 0.000361; Total: 0.005561;
+[R00] Times: IO: 0.006952; Setup: 0.000124; Compute: 0.000589; MPI: 0.000565; Total: 0.007700;
+Mon Dec 12 21:26:06 CET 2016
+Solving the Ax=b system with Gaussian Elimination:
+READ:  Matrix   (A) file name: "ge_data/size512x512.mat"
+READ:  RHS      (b) file name: "ge_data/size512x512.vec"
+WRITE: Solution (x) file name: "ge_data/size512x512.sol"
+[R07] Times: IO: 0.000000; Setup: 0.059456; Compute: 0.009903; MPI: 0.003631; Total: 0.069363;
+[R06] Times: IO: 0.000000; Setup: 0.059265; Compute: 0.010139; MPI: 0.004136; Total: 0.069408;
+[R05] Times: IO: 0.000000; Setup: 0.059067; Compute: 0.010373; MPI: 0.004834; Total: 0.069443;
+[R04] Times: IO: 0.000000; Setup: 0.058881; Compute: 0.010614; MPI: 0.005960; Total: 0.069498;
+[R03] Times: IO: 0.000000; Setup: 0.058688; Compute: 0.010870; MPI: 0.007003; Total: 0.069562;
+[R02] Times: IO: 0.000000; Setup: 0.058518; Compute: 0.011099; MPI: 0.008072; Total: 0.069620;
+[R01] Times: IO: 0.000000; Setup: 0.058358; Compute: 0.011334; MPI: 0.009330; Total: 0.069695;
+[R00] Times: IO: 0.058826; Setup: 0.001492; Compute: 0.010168; MPI: 0.009193; Total: 0.071504;
+Mon Dec 12 21:26:07 CET 2016
+Solving the Ax=b system with Gaussian Elimination:
+READ:  Matrix   (A) file name: "ge_data/size1024x1024.mat"
+READ:  RHS      (b) file name: "ge_data/size1024x1024.vec"
+WRITE: Solution (x) file name: "ge_data/size1024x1024.sol"
+[R07] Times: IO: 0.000000; Setup: 0.218579; Compute: 0.085514; MPI: 0.031889; Total: 0.304096;
+[R06] Times: IO: 0.000000; Setup: 0.217886; Compute: 0.086327; MPI: 0.033741; Total: 0.304216;
+[R05] Times: IO: 0.000000; Setup: 0.217199; Compute: 0.087163; MPI: 0.038037; Total: 0.304365;
+[R04] Times: IO: 0.000000; Setup: 0.216531; Compute: 0.088008; MPI: 0.044080; Total: 0.304542;
+[R03] Times: IO: 0.000000; Setup: 0.215389; Compute: 0.088903; MPI: 0.052400; Total: 0.304295;
+[R02] Times: IO: 0.000000; Setup: 0.214790; Compute: 0.089763; MPI: 0.061119; Total: 0.304556;
+[R01] Times: IO: 0.000000; Setup: 0.214197; Compute: 0.090660; MPI: 0.071874; Total: 0.304860;
+[R00] Times: IO: 0.212597; Setup: 0.005196; Compute: 0.086514; MPI: 0.078878; Total: 0.307379;
+Mon Dec 12 21:26:08 CET 2016
+Solving the Ax=b system with Gaussian Elimination:
+READ:  Matrix   (A) file name: "ge_data/size2048x2048.mat"
+READ:  RHS      (b) file name: "ge_data/size2048x2048.vec"
+WRITE: Solution (x) file name: "ge_data/size2048x2048.sol"
+[R07] Times: IO: 0.000000; Setup: 0.909406; Compute: 0.658767; MPI: 0.236993; Total: 1.568176;
+[R06] Times: IO: 0.000000; Setup: 0.907961; Compute: 0.660558; MPI: 0.245997; Total: 1.568525;
+[R05] Times: IO: 0.000000; Setup: 0.906473; Compute: 0.662701; MPI: 0.273502; Total: 1.569178;
+[R04] Times: IO: 0.000000; Setup: 0.905042; Compute: 0.665072; MPI: 0.317385; Total: 1.570117;
+[R03] Times: IO: 0.000000; Setup: 0.903811; Compute: 0.667224; MPI: 0.377308; Total: 1.571039;
+[R02] Times: IO: 0.000000; Setup: 0.902414; Compute: 0.669591; MPI: 0.442741; Total: 1.572008;
+[R01] Times: IO: 0.000000; Setup: 0.901091; Compute: 0.672328; MPI: 0.523507; Total: 1.573422;
+[R00] Times: IO: 0.889749; Setup: 0.012003; Compute: 0.663976; MPI: 0.608424; Total: 1.577837;
+Mon Dec 12 21:26:10 CET 2016
+Solving the Ax=b system with Gaussian Elimination:
+READ:  Matrix   (A) file name: "ge_data/size4096x4096.mat"
+READ:  RHS      (b) file name: "ge_data/size4096x4096.vec"
+WRITE: Solution (x) file name: "ge_data/size4096x4096.sol"
+[R07] Times: IO: 0.000000; Setup: 3.316206; Compute: 7.799539; MPI: 1.078786; Total: 11.115749;
+[R06] Times: IO: 0.000000; Setup: 3.309829; Compute: 7.807674; MPI: 1.182933; Total: 11.117506;
+[R05] Times: IO: 0.000000; Setup: 3.303455; Compute: 7.816751; MPI: 1.503993; Total: 11.120209;
+[R04] Times: IO: 0.000000; Setup: 3.297042; Compute: 7.826855; MPI: 2.106771; Total: 11.123901;
+[R03] Times: IO: 0.000000; Setup: 3.290669; Compute: 7.836871; MPI: 4.488353; Total: 11.127544;
+[R02] Times: IO: 0.000000; Setup: 3.284629; Compute: 7.848896; MPI: 5.074872; Total: 11.133530;
+[R01] Times: IO: 0.000000; Setup: 3.278575; Compute: 7.861572; MPI: 6.037075; Total: 11.140150;
+[R00] Times: IO: 3.229553; Setup: 0.051349; Compute: 7.824368; MPI: 7.355287; Total: 11.152587;
+Mon Dec 12 21:26:22 CET 2016
+Solving the Ax=b system with Gaussian Elimination:
+READ:  Matrix   (A) file name: "ge_data/size8192x8192.mat"
+READ:  RHS      (b) file name: "ge_data/size8192x8192.vec"
+WRITE: Solution (x) file name: "ge_data/size8192x8192.sol"
+[R07] Times: IO: 0.000000; Setup: 13.581965; Compute: 65.364301; MPI: 10.670879; Total: 78.946269;
+[R06] Times: IO: 0.000000; Setup: 13.555629; Compute: 65.413454; MPI: 11.850452; Total: 78.969087;
+[R05] Times: IO: 0.000000; Setup: 13.529209; Compute: 65.478159; MPI: 14.471927; Total: 79.007372;
+[R04] Times: IO: 0.000000; Setup: 13.502651; Compute: 65.558428; MPI: 19.387153; Total: 79.061085;
+[R03] Times: IO: 0.000000; Setup: 13.476735; Compute: 65.653910; MPI: 37.262873; Total: 79.130649;
+[R02] Times: IO: 0.000000; Setup: 13.451761; Compute: 65.763376; MPI: 43.210859; Total: 79.215142;
+[R01] Times: IO: 0.000000; Setup: 13.426700; Compute: 65.890277; MPI: 50.846372; Total: 79.316983;
+[R00] Times: IO: 13.218363; Setup: 0.213702; Compute: 65.817630; MPI: 61.254314; Total: 79.438731;
+Mon Dec 12 21:27:42 CET 2016
