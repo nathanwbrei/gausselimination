@@ -6,10 +6,40 @@ using RDatasets
 
 Gadfly.push_theme(:dark)
 
-f = "baseline/output/out_1_node_16_procs_1445521.out"
+function main()
+    parseEverything("baseline/output/", "baseline.csv")
+end
 
-function parseOutfile(filenames)
-    df = DataFrame(sample=[],
+function parseEverything(inputdir, outputfile)
+    filename_re = r"_(\d+)_node_(\d+)_procs_(\d+)\.out$"
+    files = readlines(`ls $inputdir`)
+    results = DataFrame()
+
+    for filename in files
+
+        if (m=match(filename_re, filename)) != nothing
+            print("Parsing $filename")
+            nodes = parse(Int, m[1])
+            procs = parse(Int, m[2])
+            jobid = parse(Int, m[3])
+            df = parseOutfile!(filename, nodes, procs, jobid)
+            results = vcat(results, df)
+
+        else
+            print("Ignoring $filename")
+        end
+    end
+    writetable(outputfile, results)
+    results
+end
+
+
+
+function parseOutfile(df, filename, jobid, nodes, procs)
+    df = DataFrame(jobid=[],
+                   nodes=[],
+                   procs=[],
+                   sample=[],
                    problemSize=[],
                    rank=[],
                    ioTime=[],
@@ -18,7 +48,7 @@ function parseOutfile(filenames)
                    mpiTime=[],
                    totalTime=[])
     sample = 0
-    problemsize = 0
+    problemsize = "None"
 
     re1 = r"WRITE:.*x([\d]+)\.sol\"$"
     re2 = r"\[R(\d+)\] Times: IO: ([\d\.]+)\; Setup: ([\d\.]+)\; Compute: ([\d\.]+)\; MPI: ([\d\.]+)\; Total: ([\d\.]+)\;$"
@@ -38,7 +68,10 @@ function parseOutfile(filenames)
                 problemsize = m[1]
 
             elseif (m = match(re2, l)) != nothing
-                push!(df, @data([sample,
+                push!(df, @data([jobid,
+                                 nodes,
+                                 procs,
+                                 sample,
                                  problemsize * " x " * problemsize,
                                  parse(Int64, m[1]),
                                  parse(Float64, m[2]),
