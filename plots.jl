@@ -6,9 +6,53 @@ using RDatasets
 
 Gadfly.push_theme(:dark)
 
-function parseOutfile()
-    
+f = "baseline/output/out_1_node_16_procs_1445521.out"
 
+function parseOutfile(filenames)
+    df = DataFrame(sample=[],
+                   problemSize=[],
+                   rank=[],
+                   ioTime=[],
+                   setupTime=[],
+                   computeTime=[],
+                   mpiTime=[],
+                   totalTime=[])
+    sample = 0
+    problemsize = 0
+
+    re1 = r"WRITE:.*x([\d]+)\.sol\"$"
+    re2 = r"\[R(\d+)\] Times: IO: ([\d\.]+)\; Setup: ([\d\.]+)\; Compute: ([\d\.]+)\; MPI: ([\d\.]+)\; Total: ([\d\.]+)\;$"
+
+    for filename in filenames
+
+        fp = open(filename)
+        lines = readlines(fp)
+        close(fp)
+
+        for l in lines
+
+            if startswith(l, "Solving")
+                sample += 1
+
+            elseif (m = match(re1, l)) != nothing
+                problemsize = m[1]
+
+            elseif (m = match(re2, l)) != nothing
+                push!(df, @data([sample,
+                                 problemsize * " x " * problemsize,
+                                 parse(Int64, m[1]),
+                                 parse(Float64, m[2]),
+                                 parse(Float64, m[3]),
+                                 parse(Float64, m[4]),
+                                 parse(Float64, m[5]),
+                                 parse(Float64, m[6])]))
+
+            else
+                print("Ignoring line: " * l)
+            end
+        end
+    end
+    df
 end
 
 
