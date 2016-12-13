@@ -17,16 +17,18 @@ function parseEverything(inputdir, outputfile)
 
     for filename in files
 
+        full_filename = pwd() * "/" * inputdir * "/" * strip(filename)
+
         if (m=match(filename_re, filename)) != nothing
-            print("Parsing $filename")
+            print("Parsing $full_filename")
             nodes = parse(Int, m[1])
             procs = parse(Int, m[2])
             jobid = parse(Int, m[3])
-            df = parseOutfile!(filename, nodes, procs, jobid)
+            df = parseOutfile(inputdir*strip(filename), jobid, nodes, procs)
             results = vcat(results, df)
 
         else
-            print("Ignoring $filename")
+            print("Ignoring $full_filename")
         end
     end
     writetable(outputfile, results)
@@ -35,7 +37,7 @@ end
 
 
 
-function parseOutfile(df, filename, jobid, nodes, procs)
+function parseOutfile(filename, jobid, nodes, procs)
     df = DataFrame(jobid=[],
                    nodes=[],
                    procs=[],
@@ -53,36 +55,36 @@ function parseOutfile(df, filename, jobid, nodes, procs)
     re1 = r"WRITE:.*x([\d]+)\.sol\"$"
     re2 = r"\[R(\d+)\] Times: IO: ([\d\.]+)\; Setup: ([\d\.]+)\; Compute: ([\d\.]+)\; MPI: ([\d\.]+)\; Total: ([\d\.]+)\;$"
 
-    for filename in filenames
+    print("Opening '" * filename * "'...")
+    print("CWD is " * pwd())
 
-        fp = open(filename)
-        lines = readlines(fp)
-        close(fp)
+    fp = open(filename)
+    lines = readlines(fp)
+    close(fp)
 
-        for l in lines
+    for l in lines
 
-            if startswith(l, "Solving")
-                sample += 1
+        if startswith(l, "Solving")
+            sample += 1
 
-            elseif (m = match(re1, l)) != nothing
-                problemsize = m[1]
+        elseif (m = match(re1, l)) != nothing
+            problemsize = m[1]
 
-            elseif (m = match(re2, l)) != nothing
-                push!(df, @data([jobid,
-                                 nodes,
-                                 procs,
-                                 sample,
-                                 problemsize * " x " * problemsize,
-                                 parse(Int64, m[1]),
-                                 parse(Float64, m[2]),
-                                 parse(Float64, m[3]),
-                                 parse(Float64, m[4]),
-                                 parse(Float64, m[5]),
-                                 parse(Float64, m[6])]))
+        elseif (m = match(re2, l)) != nothing
+            push!(df, @data([jobid,
+                             nodes,
+                             procs,
+                             sample,
+                             problemsize * " x " * problemsize,
+                             parse(Int, m[1]),
+                             parse(Float64, m[2]),
+                             parse(Float64, m[3]),
+                             parse(Float64, m[4]),
+                             parse(Float64, m[5]),
+                             parse(Float64, m[6])]))
 
-            else
-                print("Ignoring line: " * l)
-            end
+        else
+            print("Ignoring line: " * l)
         end
     end
     df
