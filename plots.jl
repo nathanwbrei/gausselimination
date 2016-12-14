@@ -2,16 +2,136 @@
 
 using Gadfly
 using DataFrames
-using RDatasets
 
-Gadfly.push_theme(:dark)
+
 
 function main()
-    parseEverything("baseline/output/", "baseline.csv")
+
+    #df0 = parseGroup("baseline", "baseline/output/")
+    #writetable("plots/0_all_results.csv", df0)
+    df0 = readtable("plots/0_all_results.csv")
+
+    # ====================================================================
+    # Verify that the MPI time variance increases with the number of nodes
+    # ====================================================================
+
+    #df1 = df0[(df0[:experiment] .== "baseline") & (df0[:procs] .== 16), :]
+
+    #df2 = DataFrame(nodes=df1[:nodes], problemSize=df1[:problemSize], mpiTime=df1[:mpiTime])
+    #writetable("1_baseline_filtered.csv", df2)
+
+    #df2 = decolumnize(df, :procs,
+    #                  [:computeTime, :mpiTime, :ioTime],
+    #                  ["Compute time", "MPI time", "IO time"])
+    #writetable("2_baseline_decolumnized.csv", df2)
+
+
+
+    #df3 = aggregate(df2, [:problemSize, :nodes], [mean, var, minimum, maximum])
+    #writetable("2_baseline_aggregated.csv", df3)
+
+    #p = plot(
+    #    x = df3[:problemSize],
+    #    y = df3[:mpiTime_mean],
+    #    ymax=df3[:mpiTime_maximum],
+    #    ymin=df3[:mpiTime_minimum],
+    #    color = df3[:nodes],
+    #    Geom.point,
+    #    Geom.line,
+    #    Geom.ribbon,
+    #    Guide.xlabel("Number of ranks"),
+    #    Guide.ylabel("Wall clock time"),
+    #    Guide.title("Strong scalability"),
+    #    Scale.x_log2
+    #)
+    #draw(PDF("myplot.pdf", 6inch, 6inch), p)
+
+    # ====================================================================
+    # Strong scaling:
+    #    Hold problemSize, nodes constant.
+    #    Plot procs vs mpiTime, computeTime, totalTime
+    # ====================================================================
+    # TODO: This assumes our table contains only the smallest feasible :nodes for each :procs
+    #       Which is true now, but might change in the future
+
+
+    # TODO: Consider changing mean to median
+    # TODO: Weak scaling is wrong, needs to be fixed problem size per processor
+    # TODO: Consider summing up all ranks per sample
+
+    df1 = df0[(df0[:experiment] .== "baseline") & (df0[:problemSize] .== 1024), :]
+
+    df2 = df1[[:procs, :mpiTime, :computeTime, :totalTime]]
+
+    df3 = stack(df2, [:mpiTime, :computeTime, :totalTime])
+
+    df4 = aggregate(df3, [:procs, :variable], [mean, var, minimum, maximum])
+
+    writetable("plots/2.1_strong_filtered.csv", df1)
+    writetable("plots/2.2_strong_stacked.csv", df3)
+    writetable("plots/2.3_strong_aggregated.csv", df4)
+
+    p = plot(
+        x = df4[:procs],
+        y = df4[:value_mean],
+        ymax=df4[:value_maximum],
+        ymin=df4[:value_minimum],
+        color = df4[:variable],
+        Geom.point,
+        Geom.line,
+        #Geom.errorbar,
+        Geom.ribbon,
+        Guide.xlabel("Number of ranks"),
+        Guide.ylabel("Wall clock time [s]"),
+        Guide.title("Baseline: Strong scalability"),
+        Scale.x_log2,
+        Scale.y_log10
+    )
+    draw(PDF("plots/baseline_strong.pdf", 6inch, 6inch), p)
+
+
+
+    # ====================================================================
+    # Weak scaling:
+    #    Hold procs, nodes constant.
+    #    Plot problemSize vs mpiTime, computeTime, totalTime
+    # ====================================================================
+    # TODO: This assumes our table contains only the smallest feasible :nodes for each :procs
+    #       Which is true now, but might change in the future
+
+    df1 = df0[(df0[:experiment] .== "baseline") & (df0[:procs] .== 32), :]
+
+    df2 = df1[[:problemSize, :mpiTime, :computeTime, :totalTime]]
+
+    df3 = stack(df2, [:mpiTime, :computeTime, :totalTime])
+
+    df4 = aggregate(df3, [:problemSize, :variable], [mean, var, minimum, maximum])
+
+    writetable("plots/3.1_weak_filtered.csv", df1)
+    writetable("plots/3.2_weak_stacked.csv", df3)
+    writetable("plots/3.3_weak_aggregated.csv", df4)
+
+    p = plot(
+        x = df4[:problemSize],
+        y = df4[:value_mean],
+        ymax=df4[:value_maximum],
+        ymin=df4[:value_minimum],
+        color = df4[:variable],
+        Geom.point,
+        Geom.line,
+        #Geom.errorbar,
+        Geom.ribbon,
+        Guide.xlabel("Problem size"),
+        Guide.ylabel("Wall clock time [s]"),
+        Guide.title("Baseline: Weak scalability"),
+        Scale.x_log2,
+        Scale.y_log10
+    )
+    draw(PDF("plots/baseline_weak.pdf", 6inch, 6inch), p)
 end
 
-function parseEverything(inputdir, outputfile)
-    filename_re = r"_(\d+)_node_(\d+)_procs_(\d+)\.out$"
+function parseGroup(group, inputdir)
+    filename_re = r"_(\d+)_node_(\d+)_procs_([\d\.]+)\.out$"
     files = readlines(`ls $inputdir`)
     results = DataFrame()
 
@@ -23,22 +143,22 @@ function parseEverything(inputdir, outputfile)
             print("Parsing $full_filename")
             nodes = parse(Int, m[1])
             procs = parse(Int, m[2])
-            jobid = parse(Int, m[3])
-            df = parseOutfile(inputdir*strip(filename), jobid, nodes, procs)
+            jobid = m[3]
+            df = parseFile(inputdir*strip(filename), group, jobid, nodes, procs)
             results = vcat(results, df)
 
         else
             print("Ignoring $full_filename")
         end
     end
-    writetable(outputfile, results)
     results
 end
 
 
 
-function parseOutfile(filename, jobid, nodes, procs)
-    df = DataFrame(jobid=[],
+function parseFile(filename, group, jobid, nodes, procs)
+    df = DataFrame(experiment=[],
+                   jobId=[],
                    nodes=[],
                    procs=[],
                    sample=[],
@@ -71,11 +191,12 @@ function parseOutfile(filename, jobid, nodes, procs)
             problemsize = m[1]
 
         elseif (m = match(re2, l)) != nothing
-            push!(df, @data([jobid,
+            push!(df, @data([group,
+                             jobid,
                              nodes,
                              procs,
                              sample,
-                             problemsize * " x " * problemsize,
+                             parse(Int, problemsize),
                              parse(Int, m[1]),
                              parse(Float64, m[2]),
                              parse(Float64, m[3]),
@@ -90,91 +211,3 @@ function parseOutfile(filename, jobid, nodes, procs)
     df
 end
 
-
-function makeSimpleDF()
-    df = DataFrame(numProcs=[], problemSize=[], mpiTime=[], computeTime=[], ioTime=[])
-    push!(df, @data([4, 128, 10, 20, 30]))
-    push!(df, @data([8, 128, 10, 15, 30]))
-    push!(df, @data([16, 128, 10, 10, 30]))
-    push!(df, @data([32, 128, 10, 5, 30]))
-    push!(df, @data([64, 128, 10, 1, 30]))
-    df
-end
-
-
-function makeNoisyDF()
-    df = DataFrame(numProcs=[], problemSize=[], mpiTime=[], computeTime=[], ioTime=[])
-    push!(df, @data([4, 128, 10, 20, 30]))
-    push!(df, @data([8, 128, 10, 15, 30]))
-    push!(df, @data([16, 128, 10, 10, 30]))
-    push!(df, @data([32, 128, 10, 5, 30]))
-    push!(df, @data([64, 128, 10, 1, 30]))
-    push!(df, @data([4, 128, 12, 20, 30]))
-    push!(df, @data([8, 128, 10, 17, 30]))
-    push!(df, @data([16, 128, 19, 10, 30]))
-    push!(df, @data([32, 128, 10, 5, 30]))
-    push!(df, @data([64, 128, 11, 1, 20]))
-    push!(df, @data([4, 128, 12, 20, 30]))
-    push!(df, @data([8, 128, 16, 15, 20]))
-    push!(df, @data([16, 128, 11, 10, 30]))
-    push!(df, @data([32, 128, 13, 5, 30]))
-    push!(df, @data([64, 128, 12, 1, 30]))
-    df
-end
-
-
-
-function decolumnize(df, iv, dvs, labels)
-  xx = repeat(df[iv], outer=length(dvs))
-  gg = repeat(labels, inner=size(df,1))
-  yy = []
-  for dv in dvs
-      yy = vcat(yy, df[dv])
-  end
-  DataFrame(x = xx, y = yy, g = gg)
-end
-
-
-df = makeNoisyDF()
-df0 = df[df[:problemSize] .== 128, :]
-df1 = decolumnize(df, :numProcs,
-                  [:computeTime, :mpiTime, :ioTime],
-                  ["Compute time", "MPI time", "IO time"])
-df2 = aggregate(df1, [:x, :g], [mean, minimum, maximum])
-
-#df2[:y_max] = df2[:y_mean]+sqrt(df2[:y_var])
-#df2[:y_min] = df2[:y_mean]-sqrt(df2[:y_var])
-
-p = plot(
-  x = df2[:x], y = df2[:y_mean], ymax=df2[:y_maximum], ymin=df2[:y_minimum], color = df2[:g],
-  Geom.point,
-  Geom.line,
-  Geom.ribbon,
-  Guide.xlabel("Number of ranks"),
-  Guide.ylabel("Wall clock time"),
-  Guide.title("Strong scalability"),
-  Scale.x_log2
-)
-
-draw(PDF("myplot.pdf", 6inch, 6inch), p)
-
-# p = plot(
-#   layer(x=df2[:numProcs],
-#         y=df2[:ioTime_mean],
-#         Theme(default_color=colorant"green"),
-#         Geom.line),
-#   layer(x=df2[:numProcs],
-#         y=df2[:computeTime_mean],
-#         Geom.point,
-#         Theme(default_color=colorant"blue")),
-#   Guide.xlabel("Problem size"),
-#   Guide.ylabel("Wall clock time"),
-#   Guide.title("Weak scalability"),
-#   Scale.x_log2,
-#   Scale.y_log10
-# )
-
-#plot(x=rand(10), y=rand(10),
-#     Guide.manual_color_key("Some Title",
-#                            ["item one", "item two", "item three"],
-#                            ["red", "green", "blue"]))
