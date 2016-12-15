@@ -3,14 +3,105 @@
 using Gadfly
 using DataFrames
 
-
-
 function main()
 
     #df0 = parseGroup("baseline", "baseline/output/")
     #writetable("plots/0_all_results.csv", df0)
-    df0 = readtable("plots/0_all_results.csv")
+    data = readtable("plots/0_all_results.csv")
 
+    plotWeakScaling("baseline", data)
+
+end
+
+function plotWeakScaling(experiment, data)
+
+    # ====================================================================
+    # Strong scaling:
+    #    Hold problemSize, nodes constant.
+    #    Plot procs vs mpiTime, computeTime, totalTime
+    # ====================================================================
+    # TODO: This assumes our table contains only the smallest feasible :nodes for each :procs
+    #       Which is true now, but might change in the future
+
+
+    # TODO: Consider changing mean to median
+    # TODO: Weak scaling is wrong, needs to be fixed problem size per processor
+    # TODO: Consider summing up all ranks per sample
+
+    df0 = data
+    df1 = df0[(df0[:experiment] .== "baseline") & (df0[:problemSize] .== 1024), :]
+
+    df2 = df1[[:procs, :mpiTime, :computeTime, :totalTime]]
+
+    df3 = stack(df2, [:mpiTime, :computeTime, :totalTime])
+
+    df4 = aggregate(df3, [:procs, :variable], [mean, var, minimum, maximum])
+
+    writetable("plots/$experiment-strong-filtered.csv", df1)
+    writetable("plots/$experiment-strong-stacked.csv", df3)
+    writetable("plots/$experiment-strong-aggregated.csv", df4)
+
+    p = plot(
+        x = df4[:procs],
+        y = df4[:value_mean],
+        ymax=df4[:value_maximum],
+        ymin=df4[:value_minimum],
+        color = df4[:variable],
+        Geom.point,
+        Geom.line,
+        #Geom.errorbar,
+        Geom.ribbon,
+        Guide.xlabel("Number of ranks"),
+        Guide.ylabel("Wall clock time [s]"),
+        Guide.title("Baseline: Strong scalability"),
+        Scale.x_log2,
+        Scale.y_log10
+    )
+    draw(SVG("plots/baseline_strong.svg", 6inch, 6inch), p)
+end
+
+function plotWeakScaling(experiment, data)
+    # ====================================================================
+    # Weak scaling:
+    #    Hold procs, nodes constant.
+    #    Plot problemSize vs mpiTime, computeTime, totalTime
+    # ====================================================================
+    # TODO: This assumes our table contains only the smallest feasible :nodes for each :procs
+    #       Which is true now, but might change in the future
+
+    df0 = data
+    df1 = df0[(df0[:experiment] .== "baseline") & (df0[:procs] .== 32), :]
+
+    df2 = df1[[:problemSize, :mpiTime, :computeTime, :totalTime]]
+
+    df3 = stack(df2, [:mpiTime, :computeTime, :totalTime])
+
+    df4 = aggregate(df3, [:problemSize, :variable], [mean, var, minimum, maximum])
+
+    writetable("plots/$experiment-weak-filtered.csv", df1)
+    writetable("plots/$experiment-weak-stacked.csv", df3)
+    writetable("plots/$experiment-weak-aggregated.csv", df4)
+
+    p = plot(
+        x = df4[:problemSize],
+        y = df4[:value_mean],
+        ymax=df4[:value_maximum],
+        ymin=df4[:value_minimum],
+        color = df4[:variable],
+        Geom.point,
+        Geom.line,
+        #Geom.errorbar,
+        Geom.ribbon,
+        Guide.xlabel("Problem size"),
+        Guide.ylabel("Wall clock time [s]"),
+        Guide.title("Baseline: Weak scalability"),
+        Scale.x_log2,
+        Scale.y_log10
+    )
+    draw(SVG("plots/baseline_weak.svg", 6inch, 6inch), p)
+end
+
+function plotCommsVariance(experiment, data)
     # ====================================================================
     # Verify that the MPI time variance increases with the number of nodes
     # ====================================================================
@@ -45,89 +136,6 @@ function main()
     #    Scale.x_log2
     #)
     #draw(PDF("myplot.pdf", 6inch, 6inch), p)
-
-    # ====================================================================
-    # Strong scaling:
-    #    Hold problemSize, nodes constant.
-    #    Plot procs vs mpiTime, computeTime, totalTime
-    # ====================================================================
-    # TODO: This assumes our table contains only the smallest feasible :nodes for each :procs
-    #       Which is true now, but might change in the future
-
-
-    # TODO: Consider changing mean to median
-    # TODO: Weak scaling is wrong, needs to be fixed problem size per processor
-    # TODO: Consider summing up all ranks per sample
-
-    df1 = df0[(df0[:experiment] .== "baseline") & (df0[:problemSize] .== 1024), :]
-
-    df2 = df1[[:procs, :mpiTime, :computeTime, :totalTime]]
-
-    df3 = stack(df2, [:mpiTime, :computeTime, :totalTime])
-
-    df4 = aggregate(df3, [:procs, :variable], [mean, var, minimum, maximum])
-
-    writetable("plots/2.1_strong_filtered.csv", df1)
-    writetable("plots/2.2_strong_stacked.csv", df3)
-    writetable("plots/2.3_strong_aggregated.csv", df4)
-
-    p = plot(
-        x = df4[:procs],
-        y = df4[:value_mean],
-        ymax=df4[:value_maximum],
-        ymin=df4[:value_minimum],
-        color = df4[:variable],
-        Geom.point,
-        Geom.line,
-        #Geom.errorbar,
-        Geom.ribbon,
-        Guide.xlabel("Number of ranks"),
-        Guide.ylabel("Wall clock time [s]"),
-        Guide.title("Baseline: Strong scalability"),
-        Scale.x_log2,
-        Scale.y_log10
-    )
-    draw(PDF("plots/baseline_strong.pdf", 6inch, 6inch), p)
-
-
-
-    # ====================================================================
-    # Weak scaling:
-    #    Hold procs, nodes constant.
-    #    Plot problemSize vs mpiTime, computeTime, totalTime
-    # ====================================================================
-    # TODO: This assumes our table contains only the smallest feasible :nodes for each :procs
-    #       Which is true now, but might change in the future
-
-    df1 = df0[(df0[:experiment] .== "baseline") & (df0[:procs] .== 32), :]
-
-    df2 = df1[[:problemSize, :mpiTime, :computeTime, :totalTime]]
-
-    df3 = stack(df2, [:mpiTime, :computeTime, :totalTime])
-
-    df4 = aggregate(df3, [:problemSize, :variable], [mean, var, minimum, maximum])
-
-    writetable("plots/3.1_weak_filtered.csv", df1)
-    writetable("plots/3.2_weak_stacked.csv", df3)
-    writetable("plots/3.3_weak_aggregated.csv", df4)
-
-    p = plot(
-        x = df4[:problemSize],
-        y = df4[:value_mean],
-        ymax=df4[:value_maximum],
-        ymin=df4[:value_minimum],
-        color = df4[:variable],
-        Geom.point,
-        Geom.line,
-        #Geom.errorbar,
-        Geom.ribbon,
-        Guide.xlabel("Problem size"),
-        Guide.ylabel("Wall clock time [s]"),
-        Guide.title("Baseline: Weak scalability"),
-        Scale.x_log2,
-        Scale.y_log10
-    )
-    draw(PDF("plots/baseline_weak.pdf", 6inch, 6inch), p)
 end
 
 function parseGroup(group, inputdir)
