@@ -219,3 +219,12 @@ function parseFile(filename, group, jobid, nodes, procs)
     df
 end
 
+# myxticks=log([1,5,10,50,100,500,1000])
+# myyticks=log([1,2,5,10,20])
+# plot(x=[1], y=[1],
+#      Geom.point,
+#      Scale.x_log(labels=d-> @sprintf("%d",e^d)),
+#      Scale.y_log(labels=d-> @sprintf("%d",e^d)),
+#      Guide.xticks(ticks=myxticks),
+#      Guide.yticks(ticks=myyticks)
+#      )
